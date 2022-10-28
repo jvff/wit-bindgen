@@ -9,6 +9,22 @@ use wit_bindgen_wasmer::Le;
 pub struct MyImports;
 
 impl Imports for MyImports {
+    fn empty_list_param(&mut self, a: &[u8]) {
+        assert_eq!(a, []);
+    }
+
+    fn empty_string_param(&mut self, a: &str) {
+        assert_eq!(a, "");
+    }
+
+    fn empty_list_result(&mut self) -> Vec<u8> {
+        Vec::new()
+    }
+
+    fn empty_string_result(&mut self) -> String {
+        String::new()
+    }
+
     fn list_param(&mut self, list: &[u8]) {
         assert_eq!(list, [1, 2, 3, 4]);
     }

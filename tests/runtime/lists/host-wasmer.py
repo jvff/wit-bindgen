@@ -7,6 +7,18 @@ import sys
 import wasmer # type: ignore
 
 class MyImports:
+    def empty_list_param(self, a: bytes) -> None:
+        assert(a == b'')
+
+    def empty_string_param(self, a: str) -> None:
+        assert(a == '')
+
+    def empty_list_result(self) -> bytes:
+        return b''
+
+    def empty_string_result(self) -> str:
+        return ''
+
     def list_param(self, a: bytes) -> None:
         assert(a == b'\x01\x02\x03\x04')
 
