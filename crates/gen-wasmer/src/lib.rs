@@ -834,7 +834,7 @@ impl Generator for Wasmer {
             }
             self.src.push_str("pub trait ");
             self.src.push_str(&module_camel);
-            self.src.push_str(": Sized + Send + Sync + 'static");
+            self.src.push_str(": Sized + Send + Sync");
             self.src.push_str("{\n");
             if self.all_needed_handles.len() > 0 {
                 for handle in self.all_needed_handles.iter() {
