@@ -89,33 +89,18 @@ impl demo::Config for Config {
     fn set_wasmtime_tracing(&self, tracing: bool) {
         self.wasmtime.borrow_mut().tracing = tracing;
     }
+
     fn set_wasmtime_custom_error(&self, custom_error: bool) {
         browser::log("custom error");
         self.wasmtime.borrow_mut().custom_error = custom_error;
     }
-    fn set_wasmtime_async(&self, async_: demo::WasmtimeAsync) {
-        use wit_bindgen_gen_host_wasmtime_rust::Async;
 
-        self.wasmtime.borrow_mut().async_ = match async_ {
-            demo::WasmtimeAsync::All => Async::All,
-            demo::WasmtimeAsync::None => Async::None,
-            demo::WasmtimeAsync::Only(list) => Async::Only(list.into_iter().collect()),
-        };
-    }
     fn set_wasmer_tracing(&self, tracing: bool) {
         self.wasmer.borrow_mut().tracing = tracing;
     }
+
     fn set_wasmer_custom_error(&self, custom_error: bool) {
         browser::log("custom error");
         self.wasmer.borrow_mut().custom_error = custom_error;
-    }
-    fn set_wasmer_async(&self, async_: demo::WasmtimeAsync) {
-        use wit_bindgen_gen_wasmer::Async;
-
-        self.wasmer.borrow_mut().async_ = match async_ {
-            demo::WasmtimeAsync::All => Async::All,
-            demo::WasmtimeAsync::None => Async::None,
-            demo::WasmtimeAsync::Only(list) => Async::Only(list.into_iter().collect()),
-        };
     }
 }
