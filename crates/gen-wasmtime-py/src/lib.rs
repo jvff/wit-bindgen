@@ -597,7 +597,7 @@ impl Generator for WasmtimePy {
                 self.src.indent();
                 self.src.push_str("def drop(self) -> None:\n");
                 self.src.indent();
-                self.src.push_str("pass\n");
+                self.src.push_str("return\n");
                 self.src.dedent();
 
                 for (_, funcs) in self.guest_imports.iter() {
