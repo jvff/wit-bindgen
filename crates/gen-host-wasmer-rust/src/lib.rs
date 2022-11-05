@@ -153,12 +153,12 @@ impl Wasmer {
         }
 
         if let Type::Id(id) = &f.result {
-            if let TypeDefKind::Expected(e) = &iface.types[*id].kind {
-                if let Type::Id(err) = e.err {
+            if let TypeDefKind::Result(r) = &iface.types[*id].kind {
+                if let Type::Id(err) = r.err {
                     if let Some(name) = &iface.types[err].name {
                         self.needs_custom_error_to_types.insert(name.clone());
                         return FunctionRet::CustomToError {
-                            ok: e.ok,
+                            ok: r.ok,
                             err: name.to_string(),
                         };
                     }
@@ -422,15 +422,15 @@ impl Generator for Wasmer {
         self.print_typedef_option(iface, id, payload, docs);
     }
 
-    fn type_expected(
+    fn type_result(
         &mut self,
         iface: &Interface,
         id: TypeId,
         _name: &str,
-        expected: &Expected,
+        result: &Result_,
         docs: &Docs,
     ) {
-        self.print_typedef_expected(iface, id, expected, docs);
+        self.print_typedef_result(iface, id, result, docs);
     }
 
     fn type_resource(&mut self, iface: &Interface, ty: ResourceId) {
@@ -624,7 +624,7 @@ impl Generator for Wasmer {
             .entry(iface.name.to_string())
             .or_insert(Vec::new())
             .push(Import {
-                name: func.name.to_string(),
+                name: iface.mangle_funcname(func),
                 closure,
                 trait_signature,
             });
@@ -740,7 +740,7 @@ impl Generator for Wasmer {
                 format!("wasmer::TypedFunction<{cvt}>"),
                 format!(
                     "_instance.exports.get_typed_function(&store, \"{}\")?",
-                    func.name,
+                    iface.mangle_funcname(func),
                 ),
             ),
         );
@@ -1779,7 +1779,7 @@ impl Bindgen for FunctionBindgen<'_> {
                 self.gen.needs_invalid_variant = true;
             }
 
-            Instruction::ExpectedLower {
+            Instruction::ResultLower {
                 results: result_types,
                 ..
             } => {
@@ -1795,7 +1795,7 @@ impl Bindgen for FunctionBindgen<'_> {
                 ));
             }
 
-            Instruction::ExpectedLift { .. } => {
+            Instruction::ResultLift { .. } => {
                 let err = self.blocks.pop().unwrap();
                 let ok = self.blocks.pop().unwrap();
                 let operand = &operands[0];
@@ -1803,7 +1803,7 @@ impl Bindgen for FunctionBindgen<'_> {
                     "match {operand} {{
                         0 => Ok({ok}),
                         1 => Err({err}),
-                        _ => return Err(invalid_variant(\"expected\")),
+                        _ => return Err(invalid_variant(\"result\")),
                     }}"
                 ));
                 self.gen.needs_invalid_variant = true;
@@ -2057,7 +2057,8 @@ impl Bindgen for FunctionBindgen<'_> {
 
             Instruction::CallWasm {
                 iface: _,
-                name,
+                base_name,
+                mangled_name: _,
                 sig,
             } => {
                 if sig.results.len() > 0 {
@@ -2080,7 +2081,7 @@ impl Bindgen for FunctionBindgen<'_> {
                     }
                 }
                 self.push_str("self.func_");
-                self.push_str(&to_rust_ident(name));
+                self.push_str(&to_rust_ident(base_name));
                 self.push_str(".call(store, ");
                 for operand in operands {
                     self.push_str(operand);
