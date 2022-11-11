@@ -27,14 +27,8 @@ wit-bindgen-gen-host-wasmtime-py = { path = 'crates/gen-host-wasmtime-py', featu
 wit-bindgen-gen-host-js = { path = 'crates/gen-host-js', features = ['structopt'] }
 wit-bindgen-gen-guest-c = { path = 'crates/gen-guest-c', features = ['structopt'] }
 wit-bindgen-gen-markdown = { path = 'crates/gen-markdown', features = ['structopt'] }
-wit-bindgen-gen-guest-spidermonkey-js = { path = 'crates/gen-guest-spidermonkey-js', features = ['structopt'] }
 wit-bindgen-gen-host-wasmer-rust = { path = 'crates/gen-host-wasmer-rust', features = ['structopt'] }
 wit-bindgen-gen-host-wasmer-py = { path = 'crates/gen-host-wasmer-py', features = ['structopt'] }
-
-# Compiling `spidermonkey.wasm` takes way too long without this.
-[profile.dev.package.cranelift-codegen]
-debug-assertions = false
-opt-level = 2
 
 [package.metadata.wapm]
 namespace = "wasmer"

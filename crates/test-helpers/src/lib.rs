@@ -283,26 +283,6 @@ pub fn codegen_wasmtime_py_import(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-#[cfg(feature = "guest-spidermonkey-js")]
-pub fn codegen_spidermonkey_import(input: TokenStream) -> TokenStream {
-    gen_verify(input, Direction::Import, "import", || {
-        let mut gen = wit_bindgen_gen_guest_spidermonkey_js::SpiderMonkeyWasm::new("foo.js", "");
-        gen.import_spidermonkey(true);
-        gen
-    })
-}
-
-#[proc_macro]
-#[cfg(feature = "guest-spidermonkey-js")]
-pub fn codegen_spidermonkey_export(input: TokenStream) -> TokenStream {
-    gen_verify(input, Direction::Export, "export", || {
-        let mut gen = wit_bindgen_gen_guest_spidermonkey_js::SpiderMonkeyWasm::new("foo.js", "");
-        gen.import_spidermonkey(true);
-        gen
-    })
-}
-
-#[proc_macro]
 #[cfg(feature = "host-wasmer-rust")]
 pub fn codegen_wasmer_import(input: TokenStream) -> TokenStream {
     gen_rust(

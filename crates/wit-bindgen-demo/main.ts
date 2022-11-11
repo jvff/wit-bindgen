@@ -112,7 +112,6 @@ class Editor {
       case "wasmtime-py":
       case "c":
       case "markdown":
-      case "spidermonkey":
       case "wasmer":
       case "wasmer-py":
         lang = this.language.value;
