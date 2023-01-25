@@ -89,6 +89,10 @@ pub trait Generator {
     fn type_list(&mut self, iface: &Interface, id: TypeId, name: &str, ty: &Type, docs: &Docs);
     fn type_builtin(&mut self, iface: &Interface, id: TypeId, name: &str, ty: &Type, docs: &Docs);
 
+    fn preprocess_resources(&mut self, iface: &Interface, dir: Direction) {
+        drop((iface, dir));
+    }
+
     fn preprocess_functions(&mut self, iface: &Interface, dir: Direction) {
         drop((iface, dir));
     }
@@ -130,6 +134,8 @@ pub trait Generator {
                 TypeDefKind::Stream(_) => todo!("generate for stream"),
             }
         }
+
+        self.preprocess_resources(iface, dir);
 
         for (id, _resource) in iface.resources.iter() {
             self.type_resource(iface, id);
