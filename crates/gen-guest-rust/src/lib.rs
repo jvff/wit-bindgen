@@ -282,6 +282,16 @@ impl Generator for RustWasm {
         self.print_typedef_enum(id, name, enum_, docs);
     }
 
+    fn preprocess_resources(&mut self, _: &Interface, dir: Direction) {
+        if self.opts.standalone && dir == Direction::Export {
+            self.src.push_str(
+                "/// Declares the export of the interface for the given type.\n\
+                 #[macro_export]\n\
+                 macro_rules! export(($t:ident) => {\n",
+            );
+        }
+    }
+
     fn type_resource(&mut self, iface: &Interface, ty: ResourceId) {
         // For exported handles we synthesize some trait implementations
         // automatically for runtime-required traits.
@@ -463,16 +473,6 @@ impl Generator for RustWasm {
         self.src.push_str(" = ");
         self.print_ty(iface, ty, TypeMode::Owned);
         self.src.push_str(";\n");
-    }
-
-    fn preprocess_functions(&mut self, _iface: &Interface, dir: Direction) {
-        if self.opts.standalone && dir == Direction::Export {
-            self.src.push_str(
-                "/// Declares the export of the interface for the given type.\n\
-                 #[macro_export]\n\
-                 macro_rules! export(($t:ident) => {\n",
-            );
-        }
     }
 
     fn import(&mut self, iface: &Interface, func: &Function) {
