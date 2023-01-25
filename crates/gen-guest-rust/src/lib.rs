@@ -1507,11 +1507,13 @@ impl Bindgen for FunctionBindgen<'_> {
                     }
                     FunctionKind::Static { resource, name }
                     | FunctionKind::Method { resource, name } => {
-                        self.push_str(&format!(
-                            "<super::{r} as {r}>::{}",
-                            name.to_snake_case(),
-                            r = iface.resources[*resource].name.to_camel_case(),
-                        ));
+                        let resource_trait = iface.resources[*resource].name.to_camel_case();
+                        let resource_type = if self.gen.opts.standalone {
+                            format!("{resource_trait}Impl")
+                        } else {
+                            format!("<super::{resource_trait} as {resource_trait}>")
+                        };
+                        self.push_str(&format!("{resource_type}::{}", name.to_snake_case(),));
                     }
                 }
                 self.push_str("(");
