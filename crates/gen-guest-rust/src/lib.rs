@@ -51,7 +51,7 @@ pub struct Opts {
     /// For exported interfaces, an `export!` macro is also generated
     /// that can be used to export an implementation from a different
     /// crate.
-    #[cfg_attr(feature = "structopt", structopt(skip))]
+    #[cfg_attr(feature = "structopt", structopt(long))]
     pub standalone: bool,
 }
 
