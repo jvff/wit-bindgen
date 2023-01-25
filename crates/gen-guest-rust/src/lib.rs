@@ -649,20 +649,29 @@ impl Generator for RustWasm {
         let mut src = mem::take(&mut self.src);
 
         for (name, trait_) in self.traits.iter() {
+            let resource_names: Vec<_> = trait_
+                .resource_methods
+                .iter()
+                .map(|(id, _)| iface.resources[*id].name.to_camel_case())
+                .collect();
+
             src.push_str("pub trait ");
             src.push_str(&name);
             src.push_str(" {\n");
+
+            for name in &resource_names {
+                src.push_str(&format!("  type {name}: {name};\n"));
+            }
+
             for f in trait_.methods.iter() {
                 src.push_str(&f);
                 src.push_str("\n");
             }
+
             src.push_str("}\n");
 
-            for (id, methods) in trait_.resource_methods.iter() {
-                src.push_str(&format!(
-                    "pub trait {} {{\n",
-                    iface.resources[*id].name.to_camel_case()
-                ));
+            for (name, (_, methods)) in resource_names.iter().zip(&trait_.resource_methods) {
+                src.push_str(&format!("pub trait {name} {{\n",));
                 for f in methods {
                     src.push_str(&f);
                     src.push_str("\n");
