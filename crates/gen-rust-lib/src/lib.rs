@@ -32,6 +32,10 @@ pub trait RustGenerator {
         false
     }
 
+    fn handle_is_self(&self, _resource: &ResourceId) -> bool {
+        false
+    }
+
     fn rustdoc(&mut self, docs: &Docs) {
         let docs = match &docs.contents {
             Some(docs) => docs,
@@ -171,14 +175,18 @@ pub trait RustGenerator {
                     }
                     None => "",
                 };
-                if self.handle_in_super() {
-                    self.push_str("super::");
+                if self.handle_is_self(r) {
+                    self.push_str("Self");
+                } else {
+                    if self.handle_in_super() {
+                        self.push_str("super::");
+                    }
+                    if let Some((proj, _)) = self.handle_projection() {
+                        self.push_str(proj);
+                        self.push_str("::");
+                    }
+                    self.push_str(&iface.resources[*r].name.to_camel_case());
                 }
-                if let Some((proj, _)) = self.handle_projection() {
-                    self.push_str(proj);
-                    self.push_str("::");
-                }
-                self.push_str(&iface.resources[*r].name.to_camel_case());
                 self.push_str(suffix);
             }
 

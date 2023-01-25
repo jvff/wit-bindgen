@@ -16,6 +16,7 @@ pub struct RustWasm {
     opts: Opts,
     types: Types,
     in_import: bool,
+    in_resource: Option<ResourceId>,
     traits: BTreeMap<String, Trait>,
     in_trait: bool,
     trait_name: String,
@@ -112,6 +113,10 @@ impl RustGenerator for RustWasm {
 
     fn handle_in_super(&self) -> bool {
         !self.in_import
+    }
+
+    fn handle_is_self(&self, resource: &ResourceId) -> bool {
+        Some(*resource) == self.in_resource
     }
 
     fn handle_wrapper(&self) -> Option<&'static str> {
@@ -619,7 +624,14 @@ impl Generator for RustWasm {
                 sig.self_arg = Some("&self".to_string());
             }
         }
+        self.in_resource = match &func.kind {
+            FunctionKind::Freestanding => None,
+            FunctionKind::Static { resource, .. } | FunctionKind::Method { resource, .. } => {
+                Some(*resource)
+            }
+        };
         self.print_signature(iface, func, TypeMode::Owned, &sig);
+        self.in_resource = None;
         self.src.push_str(";");
         self.in_trait = false;
         let trait_ = self
@@ -683,7 +695,8 @@ impl Generator for RustWasm {
             src.push_str("}\n");
 
             for (name, (_, methods)) in resource_names.iter().zip(&trait_.resource_methods) {
-                src.push_str(&format!("pub trait {name} {{\n",));
+                src.push_str(&format!("pub trait {name}"));
+                src.push_str(": wit_bindgen_guest_rust::HandleType + Sized {\n");
                 for f in methods {
                     src.push_str(&f);
                     src.push_str("\n");
