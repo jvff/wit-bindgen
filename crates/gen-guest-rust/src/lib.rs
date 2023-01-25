@@ -1,4 +1,5 @@
 use heck::*;
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::io::{Read, Write};
 use std::mem;
@@ -303,9 +304,22 @@ impl Generator for RustWasm {
                 }
                 #[cfg(target_arch = \"wasm32\")]
             ";
+            let iface_name = iface.name.to_camel_case();
+            let (parent, iface_impl) = if self.opts.standalone {
+                let projected_type = format!("<$t as $crate::{iface_name}>");
+                let parent = Cow::<str>::Owned(projected_type);
+                let iface_impl = parent.clone();
+
+                (parent, iface_impl)
+            } else {
+                (
+                    Cow::Borrowed("super"),
+                    Cow::Owned(format!("<super::{iface_name} as {iface_name}>")),
+                )
+            };
             self.src.push_str(&format!(
                 "
-                    unsafe impl wit_bindgen_guest_rust::HandleType for super::{ty} {{
+                    unsafe impl wit_bindgen_guest_rust::HandleType for {parent}::{ty} {{
                         #[inline]
                         fn clone(_val: i32) -> i32 {{
                             {panic_not_wasm}
@@ -333,7 +347,7 @@ impl Generator for RustWasm {
                         }}
                     }}
 
-                    unsafe impl wit_bindgen_guest_rust::LocalHandle for super::{ty} {{
+                    unsafe impl wit_bindgen_guest_rust::LocalHandle for {parent}::{ty} {{
                         #[inline]
                         fn new(_val: i32) -> i32 {{
                             {panic_not_wasm}
@@ -363,27 +377,23 @@ impl Generator for RustWasm {
 
                     const _: () = {{
                         #[export_name = \"{ns}canonical_abi_drop_{name}\"]
-                        extern \"C\" fn drop(ty: Box<super::{ty}>) {{
-                            <super::{iface} as {iface}>::drop_{name_snake}(*ty)
+                        extern \"C\" fn drop(ty: Box<{parent}::{ty}>) {{
+                            {iface_impl}::drop_{name_snake}(*ty)
                         }}
                     }};
                 ",
                 ty = iface.resources[ty].name.to_camel_case(),
                 name = iface.resources[ty].name,
                 name_snake = iface.resources[ty].name.to_snake_case(),
-                iface = iface.name.to_camel_case(),
                 ns = self.opts.symbol_namespace,
                 panic_not_wasm = panic,
             ));
-            let trait_ = self
-                .traits
-                .entry(iface.name.to_camel_case())
-                .or_insert(Trait::default());
+            let trait_ = self.traits.entry(iface_name).or_insert(Trait::default());
             trait_.methods.push(format!(
                 "
                     /// An optional callback invoked when a handle is finalized
                     /// and destroyed.
-                    fn drop_{}(val: super::{}) {{
+                    fn drop_{}(val: Self::{}) {{
                         drop(val);
                     }}
                 ",
