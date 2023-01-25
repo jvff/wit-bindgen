@@ -52,6 +52,7 @@ mod kw {
     syn::custom_keyword!(paths);
     syn::custom_keyword!(unchecked);
     syn::custom_keyword!(multi_module);
+    syn::custom_keyword!(standalone);
 }
 
 impl Parse for Opts {
@@ -68,6 +69,7 @@ impl Parse for Opts {
                 match field.into_value() {
                     ConfigField::Unchecked => opts.unchecked = true,
                     ConfigField::MultiModule => opts.multi_module = true,
+                    ConfigField::Standalone => opts.standalone = true,
                     ConfigField::Interfaces(v) => interfaces = v,
                 }
             }
@@ -79,6 +81,10 @@ impl Parse for Opts {
             }
             interfaces
         } else {
+            if input.peek(kw::standalone) {
+                input.parse::<kw::standalone>()?;
+                opts.standalone = true;
+            }
             while !input.is_empty() {
                 let s = input.parse::<syn::LitStr>()?;
                 files.push(s.value());
@@ -104,6 +110,7 @@ enum ConfigField {
     Interfaces(Vec<Interface>),
     Unchecked,
     MultiModule,
+    Standalone,
 }
 
 impl Parse for ConfigField {
@@ -141,6 +148,9 @@ impl Parse for ConfigField {
         } else if l.peek(kw::multi_module) {
             input.parse::<kw::multi_module>()?;
             Ok(ConfigField::MultiModule)
+        } else if l.peek(kw::standalone) {
+            input.parse::<kw::standalone>()?;
+            Ok(ConfigField::Standalone)
         } else {
             Err(l.error())
         }
