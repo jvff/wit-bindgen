@@ -53,6 +53,7 @@ mod kw {
     syn::custom_keyword!(unchecked);
     syn::custom_keyword!(multi_module);
     syn::custom_keyword!(export_macro);
+    syn::custom_keyword!(types_path);
 }
 
 impl Parse for Opts {
@@ -70,6 +71,7 @@ impl Parse for Opts {
                     ConfigField::Unchecked => opts.unchecked = true,
                     ConfigField::MultiModule => opts.multi_module = true,
                     ConfigField::ExportMacro(name) => opts.export_macro = Some(name),
+                    ConfigField::TypesPath(path) => opts.types_path = Some(path),
                     ConfigField::Interfaces(v) => interfaces = v,
                 }
             }
@@ -86,6 +88,12 @@ impl Parse for Opts {
                 input.parse::<token::Eq>()?;
                 let macro_name = input.parse::<syn::LitStr>()?.value();
                 opts.export_macro = Some(macro_name);
+            }
+            if input.peek(kw::types_path) {
+                input.parse::<kw::types_path>()?;
+                input.parse::<token::Eq>()?;
+                let path = input.parse::<syn::LitStr>()?.value();
+                opts.types_path = Some(path);
             }
             while !input.is_empty() {
                 let s = input.parse::<syn::LitStr>()?;
@@ -113,6 +121,7 @@ enum ConfigField {
     Unchecked,
     MultiModule,
     ExportMacro(String),
+    TypesPath(String),
 }
 
 impl Parse for ConfigField {
@@ -155,6 +164,11 @@ impl Parse for ConfigField {
             input.parse::<token::Eq>()?;
             let macro_name = input.parse::<syn::LitStr>()?.value();
             Ok(ConfigField::ExportMacro(macro_name))
+        } else if l.peek(kw::types_path) {
+            input.parse::<kw::types_path>()?;
+            input.parse::<token::Eq>()?;
+            let path = input.parse::<syn::LitStr>()?.value();
+            Ok(ConfigField::TypesPath(path))
         } else {
             Err(l.error())
         }

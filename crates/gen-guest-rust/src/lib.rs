@@ -55,6 +55,12 @@ pub struct Opts {
     /// crate.
     #[cfg_attr(feature = "structopt", structopt(long))]
     pub export_macro: Option<String>,
+
+    /// Path inside the standalone crate where the generated types can be found.
+    ///
+    /// Used inside the export macro and is prefixed with `$crate::`.
+    #[cfg_attr(feature = "structopt", structopt(long))]
+    pub types_path: Option<String>,
 }
 
 #[derive(Default)]
@@ -314,12 +320,18 @@ impl Generator for RustWasm {
             let iface_name = iface.name.to_camel_case();
             let resource_trait = iface.resources[ty].name.to_camel_case();
             let (resource_impl, iface_impl) = if self.opts.export_macro.is_some() {
+                let types_path = if let Some(path) = &self.opts.types_path {
+                    format!("{path}::")
+                } else {
+                    String::new()
+                };
+
                 self.src
                     .push_str(&format!("type {resource_trait}Impl = {resource_trait};"));
 
                 (
                     format!("{resource_trait}Impl"),
-                    format!("<$t as $crate::{iface_name}>"),
+                    format!("<$t as $crate::{types_path}{iface_name}>"),
                 )
             } else {
                 (
@@ -592,8 +604,11 @@ impl Generator for RustWasm {
             // Force the macro code to reference wit_bindgen_guest_rust for standalone crates.
             // Also ensure any referenced types are also used from the external crate.
             self.src
-                .push_str("#[allow(unused_imports)]\nuse wit_bindgen_guest_rust;\nuse ");
-            self.src.push_str(&iface_name);
+                .push_str("#[allow(unused_imports)]\nuse wit_bindgen_guest_rust;\nuse $crate");
+            if let Some(types_path) = &self.opts.types_path {
+                self.src.push_str("::");
+                self.src.push_str(types_path);
+            }
             self.src.push_str("::*;\n");
         }
 
@@ -1489,6 +1504,11 @@ impl Bindgen for FunctionBindgen<'_> {
             }
 
             Instruction::CallInterface { module, func } => {
+                let types_path = if let Some(path) = &self.gen.opts.types_path {
+                    format!("{path}::")
+                } else {
+                    String::new()
+                };
                 self.push_str("let result = ");
                 results.push("result".to_string());
                 match &func.kind {
@@ -1496,7 +1516,7 @@ impl Bindgen for FunctionBindgen<'_> {
                         if self.gen.opts.export_macro.is_some() {
                             // For standalone mode, use the macro identifier
                             self.push_str(&format!(
-                                "<$t as {t}>::{}",
+                                "<$t as $crate::{types_path}{t}>::{}",
                                 func.name.to_snake_case(),
                                 t = module.to_camel_case(),
                             ));
