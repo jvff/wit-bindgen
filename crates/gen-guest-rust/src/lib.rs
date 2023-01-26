@@ -46,15 +46,15 @@ pub struct Opts {
     #[cfg_attr(feature = "structopt", structopt(skip))]
     pub symbol_namespace: String,
 
-    /// If true, the code generation is intended for standalone crates.
+    /// If set, the code generation is intended for standalone crates.
     ///
     /// Standalone mode generates bindings without a wrapping module.
     ///
-    /// For exported interfaces, an `export!` macro is also generated
+    /// For exported interfaces, an export macro is also generated
     /// that can be used to export an implementation from a different
     /// crate.
     #[cfg_attr(feature = "structopt", structopt(long))]
-    pub standalone: bool,
+    pub export_macro: Option<String>,
 }
 
 #[derive(Default)]
@@ -166,7 +166,7 @@ impl Generator for RustWasm {
         self.types.analyze(iface);
         self.trait_name = iface.name.to_camel_case();
 
-        if !self.opts.standalone {
+        if self.opts.export_macro.is_none() {
             self.src.push_str(&format!(
                 "#[allow(clippy::all)]\nmod {} {{\n",
                 iface.name.to_snake_case(),
@@ -289,12 +289,14 @@ impl Generator for RustWasm {
     }
 
     fn preprocess_resources(&mut self, _: &Interface, dir: Direction) {
-        if self.opts.standalone && dir == Direction::Export {
-            self.src.push_str(
-                "/// Declares the export of the interface for the given type.\n\
-                 #[macro_export]\n\
-                 macro_rules! export(($t:ident) => {\n",
-            );
+        if dir == Direction::Export {
+            if let Some(export_macro) = &self.opts.export_macro {
+                self.src.push_str(&format!(
+                    "/// Declares the export of the interface for the given type.\n\
+                     #[macro_export]\n\
+                     macro_rules! {export_macro}(($t:ident) => {{\n",
+                ));
+            }
         }
     }
 
@@ -311,7 +313,7 @@ impl Generator for RustWasm {
             ";
             let iface_name = iface.name.to_camel_case();
             let resource_trait = iface.resources[ty].name.to_camel_case();
-            let (resource_impl, iface_impl) = if self.opts.standalone {
+            let (resource_impl, iface_impl) = if self.opts.export_macro.is_some() {
                 self.src
                     .push_str(&format!("type {resource_trait}Impl = {resource_trait};"));
 
@@ -586,7 +588,7 @@ impl Generator for RustWasm {
 
         self.push_str("{\n");
 
-        if self.opts.standalone {
+        if self.opts.export_macro.is_some() {
             // Force the macro code to reference wit_bindgen_guest_rust for standalone crates.
             // Also ensure any referenced types are also used from the external crate.
             self.src
@@ -664,7 +666,7 @@ impl Generator for RustWasm {
         }
 
         // For standalone generation, close the export! macro
-        if self.opts.standalone && dir == Direction::Export {
+        if self.opts.export_macro.is_some() && dir == Direction::Export {
             self.src.push_str("});\n");
         }
     }
@@ -706,7 +708,7 @@ impl Generator for RustWasm {
         }
 
         // Close the opening `mod`.
-        if !self.opts.standalone {
+        if self.opts.export_macro.is_none() {
             src.push_str("}\n");
         }
 
@@ -1491,7 +1493,7 @@ impl Bindgen for FunctionBindgen<'_> {
                 results.push("result".to_string());
                 match &func.kind {
                     FunctionKind::Freestanding => {
-                        if self.gen.opts.standalone {
+                        if self.gen.opts.export_macro.is_some() {
                             // For standalone mode, use the macro identifier
                             self.push_str(&format!(
                                 "<$t as {t}>::{}",
@@ -1509,7 +1511,7 @@ impl Bindgen for FunctionBindgen<'_> {
                     FunctionKind::Static { resource, name }
                     | FunctionKind::Method { resource, name } => {
                         let resource_trait = iface.resources[*resource].name.to_camel_case();
-                        let resource_type = if self.gen.opts.standalone {
+                        let resource_type = if self.gen.opts.export_macro.is_some() {
                             format!("{resource_trait}Impl")
                         } else {
                             format!("<super::{resource_trait} as {resource_trait}>")

@@ -52,7 +52,7 @@ mod kw {
     syn::custom_keyword!(paths);
     syn::custom_keyword!(unchecked);
     syn::custom_keyword!(multi_module);
-    syn::custom_keyword!(standalone);
+    syn::custom_keyword!(export_macro);
 }
 
 impl Parse for Opts {
@@ -69,7 +69,7 @@ impl Parse for Opts {
                 match field.into_value() {
                     ConfigField::Unchecked => opts.unchecked = true,
                     ConfigField::MultiModule => opts.multi_module = true,
-                    ConfigField::Standalone => opts.standalone = true,
+                    ConfigField::ExportMacro(name) => opts.export_macro = Some(name),
                     ConfigField::Interfaces(v) => interfaces = v,
                 }
             }
@@ -81,9 +81,11 @@ impl Parse for Opts {
             }
             interfaces
         } else {
-            if input.peek(kw::standalone) {
-                input.parse::<kw::standalone>()?;
-                opts.standalone = true;
+            if input.peek(kw::export_macro) {
+                input.parse::<kw::export_macro>()?;
+                input.parse::<token::Eq>()?;
+                let macro_name = input.parse::<syn::LitStr>()?.value();
+                opts.export_macro = Some(macro_name);
             }
             while !input.is_empty() {
                 let s = input.parse::<syn::LitStr>()?;
@@ -110,7 +112,7 @@ enum ConfigField {
     Interfaces(Vec<Interface>),
     Unchecked,
     MultiModule,
-    Standalone,
+    ExportMacro(String),
 }
 
 impl Parse for ConfigField {
@@ -148,9 +150,11 @@ impl Parse for ConfigField {
         } else if l.peek(kw::multi_module) {
             input.parse::<kw::multi_module>()?;
             Ok(ConfigField::MultiModule)
-        } else if l.peek(kw::standalone) {
-            input.parse::<kw::standalone>()?;
-            Ok(ConfigField::Standalone)
+        } else if l.peek(kw::export_macro) {
+            input.parse::<kw::export_macro>()?;
+            input.parse::<token::Eq>()?;
+            let macro_name = input.parse::<syn::LitStr>()?.value();
+            Ok(ConfigField::ExportMacro(macro_name))
         } else {
             Err(l.error())
         }
