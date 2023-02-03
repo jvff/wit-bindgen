@@ -14,6 +14,7 @@ pub struct RustWasm {
     src: Source,
     opts: Opts,
     types: Types,
+    in_macro: bool,
     in_import: bool,
     in_resource: Option<ResourceId>,
     traits: BTreeMap<String, Trait>,
@@ -301,6 +302,7 @@ impl Generator for RustWasm {
                      #[macro_export]\n\
                      macro_rules! {export_macro}(($t:ident) => {{\n",
                 ));
+                self.in_macro = true;
             }
         }
     }
@@ -646,6 +648,9 @@ impl Generator for RustWasm {
                 Some(*resource)
             }
         };
+        let in_macro = self.in_macro;
+        self.in_macro = self.in_macro && self.in_resource.is_none();
+
         self.print_signature(iface, func, TypeMode::Owned, &sig);
         self.in_resource = None;
         self.src.push_str(";");
@@ -662,6 +667,7 @@ impl Generator for RustWasm {
                 .or_insert(Vec::new()),
         };
         dst.push(mem::replace(&mut self.src, prev).into());
+        self.in_macro = in_macro;
     }
 
     fn finish_functions(&mut self, iface: &Interface, dir: Direction) {
@@ -682,6 +688,7 @@ impl Generator for RustWasm {
         // For standalone generation, close the export! macro
         if self.opts.export_macro.is_some() && dir == Direction::Export {
             self.src.push_str("});\n");
+            self.in_macro = false;
         }
     }
 
