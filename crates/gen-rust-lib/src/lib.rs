@@ -27,7 +27,7 @@ pub trait RustGenerator {
     fn print_borrowed_str(&mut self, lifetime: &'static str);
     fn default_param_mode(&self) -> TypeMode;
     fn handle_projection(&self) -> Option<(&'static str, String)>;
-    fn handle_wrapper(&self) -> Option<&'static str>;
+    fn handle_wrapper(&self) -> Option<String>;
     fn handle_in_super(&self) -> bool {
         false
     }
@@ -169,7 +169,7 @@ pub trait RustGenerator {
 
                 let suffix = match self.handle_wrapper() {
                     Some(wrapper) => {
-                        self.push_str(wrapper);
+                        self.push_str(&wrapper);
                         self.push_str("<");
                         ">"
                     }

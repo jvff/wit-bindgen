@@ -197,7 +197,7 @@ impl RustGenerator for Wasmer {
         }
     }
 
-    fn handle_wrapper(&self) -> Option<&'static str> {
+    fn handle_wrapper(&self) -> Option<String> {
         None
     }
 

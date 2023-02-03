@@ -124,11 +124,11 @@ impl RustGenerator for RustWasm {
         Some(*resource) == self.in_resource
     }
 
-    fn handle_wrapper(&self) -> Option<&'static str> {
+    fn handle_wrapper(&self) -> Option<String> {
         if self.in_import {
             None
         } else {
-            Some("wit_bindgen_guest_rust::Handle")
+            Some("wit_bindgen_guest_rust::Handle".to_owned())
         }
     }
 
