@@ -61,6 +61,14 @@ pub struct Opts {
     /// Used inside the export macro and is prefixed with `$crate::`.
     #[cfg_attr(feature = "structopt", structopt(long))]
     pub types_path: Option<String>,
+
+    /// Path to access this crate from inside the generated macro if it has been re-exported.
+    ///
+    /// This is only relevant if the [`export_macro`] is set, and is prefixed with `$crate::`. If
+    /// it is not set, the generated code will use the crate assuming it has been declared as a
+    /// dependency by the crate that uses the macro.
+    #[cfg_attr(feature = "structopt", structopt(long))]
+    pub reexported_crate_path: Option<String>,
 }
 
 #[derive(Default)]
@@ -97,6 +105,18 @@ impl RustWasm {
     fn ret_area_name(iface: &Interface) -> String {
         format!("__{}_RET_AREA", iface.name.to_shouty_snake_case())
     }
+
+    fn crate_path(&self) -> String {
+        if self.in_macro {
+            self.opts
+                .reexported_crate_path
+                .as_ref()
+                .map(|path| format!("$crate::{path}"))
+                .unwrap_or_else(|| "wit_bindgen_guest_rust".to_owned())
+        } else {
+            "wit_bindgen_guest_rust".to_owned()
+        }
+    }
 }
 
 impl RustGenerator for RustWasm {
@@ -129,7 +149,7 @@ impl RustGenerator for RustWasm {
         if self.in_import {
             None
         } else {
-            Some("wit_bindgen_guest_rust::Handle".to_owned())
+            Some(format!("{}::Handle", self.crate_path()))
         }
     }
 
@@ -212,8 +232,8 @@ impl Generator for RustWasm {
         flags: &Flags,
         docs: &Docs,
     ) {
-        self.src
-            .push_str("wit_bindgen_guest_rust::bitflags::bitflags! {\n");
+        self.src.push_str(&self.crate_path());
+        self.src.push_str("::bitflags::bitflags! {\n");
         self.rustdoc(docs);
         let repr = RustFlagsRepr::new(flags);
         self.src
@@ -340,9 +360,10 @@ impl Generator for RustWasm {
                     format!("<super::{iface_name} as {iface_name}>"),
                 )
             };
+            let crate_path = self.crate_path();
             self.src.push_str(&format!(
                 "
-                    unsafe impl wit_bindgen_guest_rust::HandleType for {resource_impl} {{
+                    unsafe impl {crate_path}::HandleType for {resource_impl} {{
                         #[inline]
                         fn clone(_val: i32) -> i32 {{
                             {panic_not_wasm}
@@ -370,7 +391,7 @@ impl Generator for RustWasm {
                         }}
                     }}
 
-                    unsafe impl wit_bindgen_guest_rust::LocalHandle for {resource_impl} {{
+                    unsafe impl {crate_path}::LocalHandle for {resource_impl} {{
                         #[inline]
                         fn new(_val: i32) -> i32 {{
                             {panic_not_wasm}
@@ -604,8 +625,9 @@ impl Generator for RustWasm {
         if self.opts.export_macro.is_some() {
             // Force the macro code to reference wit_bindgen_guest_rust for standalone crates.
             // Also ensure any referenced types are also used from the external crate.
-            self.src
-                .push_str("#[allow(unused_imports)]\nuse wit_bindgen_guest_rust;\nuse $crate");
+            self.src.push_str("#[allow(unused_imports)]\nuse ");
+            self.src.push_str(&self.crate_path());
+            self.src.push_str(";\nuse $crate");
             if let Some(types_path) = &self.opts.types_path {
                 self.src.push_str("::");
                 self.src.push_str(types_path);
@@ -719,7 +741,9 @@ impl Generator for RustWasm {
 
             for (name, (_, methods)) in resource_names.iter().zip(&trait_.resource_methods) {
                 src.push_str(&format!("pub trait {name}"));
-                src.push_str(": wit_bindgen_guest_rust::HandleType + Sized {\n");
+                src.push_str(": ");
+                src.push_str(&self.crate_path());
+                src.push_str("::HandleType + Sized {\n");
                 for f in methods {
                     src.push_str(&f);
                     src.push_str("\n");
@@ -939,6 +963,7 @@ impl Bindgen for FunctionBindgen<'_> {
             s.push_str(cvt);
             results.push(s);
         };
+        let crate_path = self.gen.crate_path();
 
         match inst {
             Instruction::GetArg { nth } => results.push(self.params[*nth].clone()),
@@ -956,7 +981,7 @@ impl Bindgen for FunctionBindgen<'_> {
 
             Instruction::I64FromU64 | Instruction::I64FromS64 => {
                 let s = operands.pop().unwrap();
-                results.push(format!("wit_bindgen_guest_rust::rt::as_i64({})", s));
+                results.push(format!("{crate_path}::rt::as_i64({})", s));
             }
             Instruction::I32FromChar
             | Instruction::I32FromU8
@@ -966,16 +991,16 @@ impl Bindgen for FunctionBindgen<'_> {
             | Instruction::I32FromU32
             | Instruction::I32FromS32 => {
                 let s = operands.pop().unwrap();
-                results.push(format!("wit_bindgen_guest_rust::rt::as_i32({})", s));
+                results.push(format!("{crate_path}::rt::as_i32({})", s));
             }
 
             Instruction::F32FromFloat32 => {
                 let s = operands.pop().unwrap();
-                results.push(format!("wit_bindgen_guest_rust::rt::as_f32({})", s));
+                results.push(format!("{crate_path}::rt::as_f32({})", s));
             }
             Instruction::F64FromFloat64 => {
                 let s = operands.pop().unwrap();
-                results.push(format!("wit_bindgen_guest_rust::rt::as_f64({})", s));
+                results.push(format!("{crate_path}::rt::as_f64({})", s));
             }
             Instruction::Float32FromF32
             | Instruction::Float64FromF64
@@ -1037,16 +1062,10 @@ impl Bindgen for FunctionBindgen<'_> {
 
             // handles in exports
             Instruction::I32FromOwnedHandle { .. } => {
-                results.push(format!(
-                    "wit_bindgen_guest_rust::Handle::into_raw({})",
-                    operands[0]
-                ));
+                results.push(format!("{crate_path}::Handle::into_raw({})", operands[0]));
             }
             Instruction::HandleBorrowedFromI32 { .. } => {
-                results.push(format!(
-                    "wit_bindgen_guest_rust::Handle::from_raw({})",
-                    operands[0],
-                ));
+                results.push(format!("{crate_path}::Handle::from_raw({})", operands[0],));
             }
 
             // handles in imports
@@ -1650,7 +1669,7 @@ impl Bindgen for FunctionBindgen<'_> {
                 align,
             } => {
                 self.push_str(&format!(
-                    "wit_bindgen_guest_rust::rt::canonical_abi_free({} as *mut u8, {}, {});\n",
+                    "{crate_path}::rt::canonical_abi_free({} as *mut u8, {}, {});\n",
                     operands[0], size, align
                 ));
             }
