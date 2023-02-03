@@ -54,6 +54,7 @@ mod kw {
     syn::custom_keyword!(multi_module);
     syn::custom_keyword!(export_macro);
     syn::custom_keyword!(types_path);
+    syn::custom_keyword!(reexported_crate_path);
 }
 
 impl Parse for Opts {
@@ -72,6 +73,9 @@ impl Parse for Opts {
                     ConfigField::MultiModule => opts.multi_module = true,
                     ConfigField::ExportMacro(name) => opts.export_macro = Some(name),
                     ConfigField::TypesPath(path) => opts.types_path = Some(path),
+                    ConfigField::ReexportedCratePath(path) => {
+                        opts.reexported_crate_path = Some(path)
+                    }
                     ConfigField::Interfaces(v) => interfaces = v,
                 }
             }
@@ -94,6 +98,11 @@ impl Parse for Opts {
                     input.parse::<token::Eq>()?;
                     let path = input.parse::<syn::LitStr>()?.value();
                     opts.types_path = Some(path);
+                } else if input.peek(kw::reexported_crate_path) {
+                    input.parse::<kw::reexported_crate_path>()?;
+                    input.parse::<token::Eq>()?;
+                    let path = input.parse::<syn::LitStr>()?.value();
+                    opts.reexported_crate_path = Some(path);
                 } else {
                     let s = input.parse::<syn::LitStr>()?;
                     files.push(s.value());
@@ -122,6 +131,7 @@ enum ConfigField {
     MultiModule,
     ExportMacro(String),
     TypesPath(String),
+    ReexportedCratePath(String),
 }
 
 impl Parse for ConfigField {
@@ -169,6 +179,11 @@ impl Parse for ConfigField {
             input.parse::<token::Eq>()?;
             let path = input.parse::<syn::LitStr>()?.value();
             Ok(ConfigField::TypesPath(path))
+        } else if l.peek(kw::reexported_crate_path) {
+            input.parse::<kw::reexported_crate_path>()?;
+            input.parse::<token::Eq>()?;
+            let path = input.parse::<syn::LitStr>()?.value();
+            Ok(ConfigField::ReexportedCratePath(path))
         } else {
             Err(l.error())
         }
