@@ -83,21 +83,21 @@ impl Parse for Opts {
             }
             interfaces
         } else {
-            if input.peek(kw::export_macro) {
-                input.parse::<kw::export_macro>()?;
-                input.parse::<token::Eq>()?;
-                let macro_name = input.parse::<syn::LitStr>()?.value();
-                opts.export_macro = Some(macro_name);
-            }
-            if input.peek(kw::types_path) {
-                input.parse::<kw::types_path>()?;
-                input.parse::<token::Eq>()?;
-                let path = input.parse::<syn::LitStr>()?.value();
-                opts.types_path = Some(path);
-            }
             while !input.is_empty() {
-                let s = input.parse::<syn::LitStr>()?;
-                files.push(s.value());
+                if input.peek(kw::export_macro) {
+                    input.parse::<kw::export_macro>()?;
+                    input.parse::<token::Eq>()?;
+                    let macro_name = input.parse::<syn::LitStr>()?.value();
+                    opts.export_macro = Some(macro_name);
+                } else if input.peek(kw::types_path) {
+                    input.parse::<kw::types_path>()?;
+                    input.parse::<token::Eq>()?;
+                    let path = input.parse::<syn::LitStr>()?.value();
+                    opts.types_path = Some(path);
+                } else {
+                    let s = input.parse::<syn::LitStr>()?;
+                    files.push(s.value());
+                }
             }
             let mut interfaces = Vec::new();
             let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
