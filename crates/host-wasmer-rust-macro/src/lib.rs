@@ -137,7 +137,9 @@ impl Parse for ConfigField {
             let paths = Punctuated::<syn::LitStr, Token![,]>::parse_terminated(&paths)?;
             let values = paths.iter().map(|s| s.value()).collect::<Vec<_>>();
             let mut interfaces = Vec::new();
+            let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
             for value in &values {
+                let value = manifest_dir.join(value);
                 let interface =
                     Interface::parse_file(value).map_err(|e| Error::new(bracket.span, e))?;
                 interfaces.push(interface);
