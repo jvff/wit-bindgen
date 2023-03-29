@@ -320,7 +320,7 @@ impl Generator for RustWasm {
                 self.src.push_str(&format!(
                     "/// Declares the export of the interface for the given type.\n\
                      #[macro_export]\n\
-                     macro_rules! {export_macro}(($t:ident) => {{\n",
+                     macro_rules! {export_macro}(($t:ty) => {{\n",
                 ));
                 self.in_macro = true;
             }
