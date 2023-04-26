@@ -1,7 +1,9 @@
 [package]
-name = "wit-bindgen-gen-guest-rust"
+name = "linera-wit-bindgen-gen-guest-rust"
 version = "0.2.0"
-authors = ["Alex Crichton <alex@alexcrichton.com>"]
+description = "experimental fork"
+license = "Apache-2.0"
+authors = ["Alex Crichton <alex@alexcrichton.com>", "Linera <contact@linera.io>"]
 edition = "2021"
 
 [lib]
@@ -9,11 +11,11 @@ test = false
 doctest = false
 
 [dependencies]
-wit-bindgen-core = { path = '../bindgen-core', version = '0.2.0' }
-wit-bindgen-gen-rust-lib = { path = '../gen-rust-lib', version = '0.2.0' }
+wit-bindgen-core = { path = '../bindgen-core', version = '0.2.0', package = "linera-wit-bindgen-core" }
+wit-bindgen-gen-rust-lib = { path = '../gen-rust-lib', version = '0.2.0', package = "linera-wit-bindgen-gen-rust-lib" }
 heck = "0.3"
 structopt = { version = "0.3", default-features = false, optional = true }
 
 [dev-dependencies]
-wit-bindgen-guest-rust = { path = '../guest-rust' }
-test-helpers = { path = '../test-helpers', features = ['guest-rust'] }
+wit-bindgen-guest-rust = { path = '../guest-rust', package = "linera-wit-bindgen-guest-rust" }
+test-helpers = { path = '../test-helpers', features = ['guest-rust'], package = "linera-test-helpers" }

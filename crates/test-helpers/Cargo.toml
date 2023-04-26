@@ -1,5 +1,5 @@
 [package]
-name = "test-helpers"
+name = "linera-test-helpers"
 version = "0.2.0"
 authors = ["Alex Crichton <alex@alexcrichton.com>"]
 edition = "2021"
@@ -16,20 +16,20 @@ heck = "0.3"
 ignore = "0.4"
 proc-macro2 = "1.0.27"
 quote = "1.0.9"
-wit-bindgen-core = { path = '../bindgen-core' }
-wit-bindgen-gen-guest-rust = { path = '../gen-guest-rust', optional = true }
-wit-bindgen-gen-host-wasmtime-rust = { path = '../gen-host-wasmtime-rust', optional = true }
-wit-bindgen-gen-host-wasmtime-py = { path = '../gen-host-wasmtime-py', optional = true }
-wit-bindgen-gen-host-js = { path = '../gen-host-js', optional = true }
-wit-bindgen-gen-guest-c = { path = '../gen-guest-c', optional = true }
-wit-bindgen-gen-host-wasmer-rust = { path = '../gen-host-wasmer-rust', optional = true }
-wit-bindgen-gen-host-wasmer-py = { path = '../gen-host-wasmer-py', optional = true }
-wit-parser = { path = '../wit-parser' }
+wit-bindgen-core = { path = '../bindgen-core', package = "linera-wit-bindgen-core" }
+wit-bindgen-gen-guest-rust = { path = '../gen-guest-rust', optional = true, package = "linera-wit-bindgen-gen-guest-rust" }
+wit-bindgen-gen-host-wasmtime-rust = { path = '../gen-host-wasmtime-rust', optional = true, package = "linera-wit-bindgen-gen-host-wasmtime-rust" }
+wit-bindgen-gen-host-wasmtime-py = { path = '../gen-host-wasmtime-py', optional = true, package = "linera-wit-bindgen-gen-host-wasmtime-py" }
+wit-bindgen-gen-host-js = { path = '../gen-host-js', optional = true, package = "linera-wit-bindgen-gen-host-js" }
+wit-bindgen-gen-guest-c = { path = '../gen-guest-c', optional = true, package = "linera-wit-bindgen-gen-guest-c"}
+wit-bindgen-gen-host-wasmer-rust = { path = '../gen-host-wasmer-rust', optional = true, package = "linera-wit-bindgen-gen-host-wasmer-rust" }
+wit-bindgen-gen-host-wasmer-py = { path = '../gen-host-wasmer-py', optional = true, package = "linera-wit-bindgen-gen-host-wasmer-py" }
+wit-parser = { path = '../wit-parser', package = "linera-wit-parser" }
 filetime = "0.2"
 
 [build-dependencies]
-wit-bindgen-gen-guest-c = { path = '../gen-guest-c' }
-wit-bindgen-core = { path = '../bindgen-core' }
+wit-bindgen-gen-guest-c = { path = '../gen-guest-c', package = "linera-wit-bindgen-gen-guest-c" }
+wit-bindgen-core = { path = '../bindgen-core', package = "linera-wit-bindgen-core" }
 
 [features]
 default = ['guest-rust', 'guest-c', 'host-js', 'host-wasmtime-py', 'host-wasmtime-rust']

@@ -1,7 +1,9 @@
 [package]
-name = "wit-parser"
+name = "linera-wit-parser"
 version = "0.2.0"
-authors = ["Alex Crichton <alex@alexcrichton.com>"]
+description = "experimental fork of wit-parser"
+license = "Apache-2.0"
+authors = ["Alex Crichton <alex@alexcrichton.com>", "Linera <contact@linera.io>"]
 edition = "2021"
 
 [dependencies]

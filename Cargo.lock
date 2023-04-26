@@ -1121,6 +1121,267 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc7fcc620a3bff7cdd7a365be3376c97191aeaccc2a603e600951e452615bf89"
 
 [[package]]
+name = "linera-test-helpers"
+version = "0.2.0"
+dependencies = [
+ "backtrace",
+ "filetime",
+ "heck 0.3.3",
+ "ignore",
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-guest-c",
+ "linera-wit-bindgen-gen-guest-rust",
+ "linera-wit-bindgen-gen-host-js",
+ "linera-wit-bindgen-gen-host-wasmer-py",
+ "linera-wit-bindgen-gen-host-wasmer-rust",
+ "linera-wit-bindgen-gen-host-wasmtime-py",
+ "linera-wit-bindgen-gen-host-wasmtime-rust",
+ "linera-wit-parser",
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
+name = "linera-wit-bindgen-cli"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-guest-c",
+ "linera-wit-bindgen-gen-guest-rust",
+ "linera-wit-bindgen-gen-host-js",
+ "linera-wit-bindgen-gen-host-wasmer-py",
+ "linera-wit-bindgen-gen-host-wasmer-rust",
+ "linera-wit-bindgen-gen-host-wasmtime-py",
+ "linera-wit-bindgen-gen-host-wasmtime-rust",
+ "linera-wit-bindgen-gen-markdown",
+ "structopt",
+]
+
+[[package]]
+name = "linera-wit-bindgen-core"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "linera-wit-parser",
+]
+
+[[package]]
+name = "linera-wit-bindgen-demo"
+version = "0.2.0"
+dependencies = [
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-guest-c",
+ "linera-wit-bindgen-gen-guest-rust",
+ "linera-wit-bindgen-gen-host-js",
+ "linera-wit-bindgen-gen-host-wasmer-py",
+ "linera-wit-bindgen-gen-host-wasmer-rust",
+ "linera-wit-bindgen-gen-host-wasmtime-py",
+ "linera-wit-bindgen-gen-host-wasmtime-rust",
+ "linera-wit-bindgen-gen-markdown",
+ "linera-wit-bindgen-guest-rust",
+ "wasmprinter",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-guest-c"
+version = "0.2.0"
+dependencies = [
+ "heck 0.3.3",
+ "linera-test-helpers",
+ "linera-wit-bindgen-core",
+ "structopt",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-guest-rust"
+version = "0.2.0"
+dependencies = [
+ "heck 0.3.3",
+ "linera-test-helpers",
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-rust-lib",
+ "linera-wit-bindgen-guest-rust",
+ "structopt",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-host-js"
+version = "0.2.0"
+dependencies = [
+ "heck 0.3.3",
+ "linera-test-helpers",
+ "linera-wit-bindgen-core",
+ "structopt",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-host-wasmer-py"
+version = "0.2.0"
+dependencies = [
+ "heck 0.3.3",
+ "linera-test-helpers",
+ "linera-wit-bindgen-core",
+ "structopt",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-host-wasmer-rust"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "heck 0.3.3",
+ "linera-test-helpers",
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-rust-lib",
+ "linera-wit-bindgen-host-wasmer-rust",
+ "structopt",
+ "wasmer",
+ "wasmer-wasi",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-host-wasmtime-py"
+version = "0.2.0"
+dependencies = [
+ "heck 0.3.3",
+ "linera-test-helpers",
+ "linera-wit-bindgen-core",
+ "structopt",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-host-wasmtime-rust"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "heck 0.3.3",
+ "linera-test-helpers",
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-rust-lib",
+ "linera-wit-bindgen-host-wasmtime-rust",
+ "structopt",
+ "wasmtime",
+ "wasmtime-wasi",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-markdown"
+version = "0.2.0"
+dependencies = [
+ "heck 0.3.3",
+ "linera-wit-bindgen-core",
+ "pulldown-cmark",
+ "structopt",
+]
+
+[[package]]
+name = "linera-wit-bindgen-gen-rust-lib"
+version = "0.2.0"
+dependencies = [
+ "heck 0.3.3",
+ "linera-wit-bindgen-core",
+]
+
+[[package]]
+name = "linera-wit-bindgen-guest-rust"
+version = "0.2.0"
+dependencies = [
+ "bitflags",
+ "linera-wit-bindgen-guest-rust-macro",
+]
+
+[[package]]
+name = "linera-wit-bindgen-guest-rust-macro"
+version = "0.2.0"
+dependencies = [
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-guest-rust",
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
+name = "linera-wit-bindgen-host-wasmer-rust"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bitflags",
+ "linera-wit-bindgen-host-wasmer-rust-macro",
+ "once_cell",
+ "thiserror",
+ "tracing",
+ "wasmer",
+]
+
+[[package]]
+name = "linera-wit-bindgen-host-wasmer-rust-macro"
+version = "0.2.0"
+dependencies = [
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-host-wasmer-rust",
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
+name = "linera-wit-bindgen-host-wasmtime-rust"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bitflags",
+ "linera-wit-bindgen-host-wasmtime-rust-macro",
+ "thiserror",
+ "tracing",
+ "wasmtime",
+]
+
+[[package]]
+name = "linera-wit-bindgen-host-wasmtime-rust-macro"
+version = "0.2.0"
+dependencies = [
+ "linera-wit-bindgen-core",
+ "linera-wit-bindgen-gen-host-wasmtime-rust",
+ "proc-macro2",
+ "syn",
+]
+
+[[package]]
+name = "linera-wit-component"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "clap 3.2.6",
+ "env_logger",
+ "glob",
+ "indexmap",
+ "linera-wit-parser",
+ "log",
+ "pretty_assertions",
+ "wasm-encoder 0.13.0",
+ "wasmparser 0.86.0",
+ "wasmprinter",
+ "wat",
+]
+
+[[package]]
+name = "linera-wit-parser"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "id-arena",
+ "pulldown-cmark",
+ "rayon",
+ "serde",
+ "serde_json",
+ "unicode-normalization",
+ "unicode-xid",
+ "wast 33.0.0",
+]
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.0.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1847,32 +2108,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "test-helpers"
-version = "0.2.0"
-dependencies = [
- "backtrace",
- "filetime",
- "heck 0.3.3",
- "ignore",
- "proc-macro2",
- "quote",
- "wit-bindgen-core",
- "wit-bindgen-gen-guest-c",
- "wit-bindgen-gen-guest-rust",
- "wit-bindgen-gen-host-js",
- "wit-bindgen-gen-host-wasmer-py",
- "wit-bindgen-gen-host-wasmer-rust",
- "wit-bindgen-gen-host-wasmtime-py",
- "wit-bindgen-gen-host-wasmtime-rust",
- "wit-parser",
-]
-
-[[package]]
 name = "test-rust-wasm"
 version = "0.2.0"
 dependencies = [
  "futures-util",
- "wit-bindgen-guest-rust",
+ "linera-wit-bindgen-guest-rust",
 ]
 
 [[package]]
@@ -2912,246 +3152,6 @@ dependencies = [
  "bitflags",
  "io-lifetimes",
  "windows-sys 0.36.1",
-]
-
-[[package]]
-name = "wit-bindgen-cli"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "structopt",
- "wit-bindgen-core",
- "wit-bindgen-gen-guest-c",
- "wit-bindgen-gen-guest-rust",
- "wit-bindgen-gen-host-js",
- "wit-bindgen-gen-host-wasmer-py",
- "wit-bindgen-gen-host-wasmer-rust",
- "wit-bindgen-gen-host-wasmtime-py",
- "wit-bindgen-gen-host-wasmtime-rust",
- "wit-bindgen-gen-markdown",
-]
-
-[[package]]
-name = "wit-bindgen-core"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "wit-parser",
-]
-
-[[package]]
-name = "wit-bindgen-demo"
-version = "0.2.0"
-dependencies = [
- "wasmprinter",
- "wit-bindgen-core",
- "wit-bindgen-gen-guest-c",
- "wit-bindgen-gen-guest-rust",
- "wit-bindgen-gen-host-js",
- "wit-bindgen-gen-host-wasmer-py",
- "wit-bindgen-gen-host-wasmer-rust",
- "wit-bindgen-gen-host-wasmtime-py",
- "wit-bindgen-gen-host-wasmtime-rust",
- "wit-bindgen-gen-markdown",
- "wit-bindgen-guest-rust",
-]
-
-[[package]]
-name = "wit-bindgen-gen-guest-c"
-version = "0.2.0"
-dependencies = [
- "heck 0.3.3",
- "structopt",
- "test-helpers",
- "wit-bindgen-core",
-]
-
-[[package]]
-name = "wit-bindgen-gen-guest-rust"
-version = "0.2.0"
-dependencies = [
- "heck 0.3.3",
- "structopt",
- "test-helpers",
- "wit-bindgen-core",
- "wit-bindgen-gen-rust-lib",
- "wit-bindgen-guest-rust",
-]
-
-[[package]]
-name = "wit-bindgen-gen-host-js"
-version = "0.2.0"
-dependencies = [
- "heck 0.3.3",
- "structopt",
- "test-helpers",
- "wit-bindgen-core",
-]
-
-[[package]]
-name = "wit-bindgen-gen-host-wasmer-py"
-version = "0.2.0"
-dependencies = [
- "heck 0.3.3",
- "structopt",
- "test-helpers",
- "wit-bindgen-core",
-]
-
-[[package]]
-name = "wit-bindgen-gen-host-wasmer-rust"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "heck 0.3.3",
- "structopt",
- "test-helpers",
- "wasmer",
- "wasmer-wasi",
- "wit-bindgen-core",
- "wit-bindgen-gen-rust-lib",
- "wit-bindgen-host-wasmer-rust",
-]
-
-[[package]]
-name = "wit-bindgen-gen-host-wasmtime-py"
-version = "0.2.0"
-dependencies = [
- "heck 0.3.3",
- "structopt",
- "test-helpers",
- "wit-bindgen-core",
-]
-
-[[package]]
-name = "wit-bindgen-gen-host-wasmtime-rust"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "heck 0.3.3",
- "structopt",
- "test-helpers",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-core",
- "wit-bindgen-gen-rust-lib",
- "wit-bindgen-host-wasmtime-rust",
-]
-
-[[package]]
-name = "wit-bindgen-gen-markdown"
-version = "0.2.0"
-dependencies = [
- "heck 0.3.3",
- "pulldown-cmark",
- "structopt",
- "wit-bindgen-core",
-]
-
-[[package]]
-name = "wit-bindgen-gen-rust-lib"
-version = "0.2.0"
-dependencies = [
- "heck 0.3.3",
- "wit-bindgen-core",
-]
-
-[[package]]
-name = "wit-bindgen-guest-rust"
-version = "0.2.0"
-dependencies = [
- "bitflags",
- "wit-bindgen-guest-rust-macro",
-]
-
-[[package]]
-name = "wit-bindgen-guest-rust-macro"
-version = "0.2.0"
-dependencies = [
- "proc-macro2",
- "syn",
- "wit-bindgen-core",
- "wit-bindgen-gen-guest-rust",
-]
-
-[[package]]
-name = "wit-bindgen-host-wasmer-rust"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "bitflags",
- "once_cell",
- "thiserror",
- "tracing",
- "wasmer",
- "wit-bindgen-host-wasmer-rust-macro",
-]
-
-[[package]]
-name = "wit-bindgen-host-wasmer-rust-macro"
-version = "0.2.0"
-dependencies = [
- "proc-macro2",
- "syn",
- "wit-bindgen-core",
- "wit-bindgen-gen-host-wasmer-rust",
-]
-
-[[package]]
-name = "wit-bindgen-host-wasmtime-rust"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "bitflags",
- "thiserror",
- "tracing",
- "wasmtime",
- "wit-bindgen-host-wasmtime-rust-macro",
-]
-
-[[package]]
-name = "wit-bindgen-host-wasmtime-rust-macro"
-version = "0.2.0"
-dependencies = [
- "proc-macro2",
- "syn",
- "wit-bindgen-core",
- "wit-bindgen-gen-host-wasmtime-rust",
-]
-
-[[package]]
-name = "wit-component"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "clap 3.2.6",
- "env_logger",
- "glob",
- "indexmap",
- "log",
- "pretty_assertions",
- "wasm-encoder 0.13.0",
- "wasmparser 0.86.0",
- "wasmprinter",
- "wat",
- "wit-parser",
-]
-
-[[package]]
-name = "wit-parser"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "id-arena",
- "pulldown-cmark",
- "rayon",
- "serde",
- "serde_json",
- "unicode-normalization",
- "unicode-xid",
- "wast 33.0.0",
 ]
 
 [[package]]

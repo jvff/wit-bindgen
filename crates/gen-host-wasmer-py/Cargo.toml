@@ -1,5 +1,5 @@
 [package]
-name = "wit-bindgen-gen-host-wasmer-py"
+name = "linera-wit-bindgen-gen-host-wasmer-py"
 version = "0.2.0"
 authors = ["Alex Crichton <alex@alexcrichton.com>"]
 edition = "2018"
@@ -9,9 +9,9 @@ doctest = false
 test = false
 
 [dependencies]
-wit-bindgen-core = { path = '../bindgen-core', version = '0.2.0' }
+wit-bindgen-core = { path = '../bindgen-core', version = '0.2.0', package = "linera-wit-bindgen-core" }
 heck = "0.3"
 structopt = { version = "0.3", default-features = false, optional = true }
 
 [dev-dependencies]
-test-helpers = { path = '../test-helpers', features = ['host-wasmer-py'] }
+test-helpers = { path = '../test-helpers', features = ['host-wasmer-py'], package = "linera-test-helpers" }

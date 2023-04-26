@@ -1,12 +1,14 @@
 [package]
-name = "wit-bindgen-core"
+name = "linera-wit-bindgen-core"
 version = "0.2.0"
-authors = ["Alex Crichton <alex@alexcrichton.com>"]
+description = "experimental fork"
+license = "Apache-2.0"
+authors = ["Alex Crichton <alex@alexcrichton.com>", "Linera <contact@linera.io>"]
 edition = "2021"
 
 [lib]
 doctest = false
 
 [dependencies]
-wit-parser = { path = '../wit-parser' }
+wit-parser = { version = "0.2.0", path = "../wit-parser", package = "linera-wit-parser" }
 anyhow = "1"

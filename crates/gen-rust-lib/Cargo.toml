@@ -1,7 +1,9 @@
 [package]
-name = "wit-bindgen-gen-rust-lib"
+name = "linera-wit-bindgen-gen-rust-lib"
 version = "0.2.0"
-authors = ["Alex Crichton <alex@alexcrichton.com>"]
+description = "experimental fork"
+license = "Apache-2.0"
+authors = ["Alex Crichton <alex@alexcrichton.com>", "Linera <contact@linera.io>"]
 edition = "2021"
 
 [lib]
@@ -9,5 +11,5 @@ doctest = false
 test = false
 
 [dependencies]
-wit-bindgen-core = { path = '../bindgen-core' }
+wit-bindgen-core = { path = '../bindgen-core', version = "0.2", package = "linera-wit-bindgen-core" }
 heck = "0.3"

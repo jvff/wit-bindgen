@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 futures-util = { version = "0.3.17", default-features = true }
-wit-bindgen-guest-rust = { path = "../guest-rust" }
+wit-bindgen-guest-rust = { path = "../guest-rust", package = "linera-wit-bindgen-guest-rust" }
 
 [features]
 unchecked = []
