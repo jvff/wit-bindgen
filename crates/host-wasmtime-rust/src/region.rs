@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::convert::TryInto;
 use std::marker;
 use std::mem;
-use wasmtime::Trap;
+use wasmtime::Result;
 
 // This is a pretty naive way to account for borrows. This datastructure
 // could be made a lot more efficient with some effort.
@@ -25,10 +25,6 @@ pub struct BorrowChecker<'a> {
 unsafe impl Send for BorrowChecker<'_> {}
 unsafe impl Sync for BorrowChecker<'_> {}
 
-fn to_trap(err: impl std::error::Error + Send + Sync + 'static) -> Trap {
-    Trap::from(Box::new(err) as Box<dyn std::error::Error + Send + Sync>)
-}
-
 impl<'a> BorrowChecker<'a> {
     pub fn new(data: &'a mut [u8]) -> BorrowChecker<'a> {
         BorrowChecker {
@@ -40,7 +36,7 @@ impl<'a> BorrowChecker<'a> {
         }
     }
 
-    pub fn slice<T: AllBytesValid>(&mut self, ptr: i32, len: i32) -> Result<&'a [T], Trap> {
+    pub fn slice<T: AllBytesValid>(&mut self, ptr: i32, len: i32) -> Result<&'a [T]> {
         let (ret, r) = self.get_slice(ptr, len)?;
         // SAFETY: We're promoting the valid lifetime of `ret` from a temporary
         // borrow on `self` to `'a` on this `BorrowChecker`. At the same time
@@ -52,7 +48,7 @@ impl<'a> BorrowChecker<'a> {
         Ok(ret)
     }
 
-    pub fn slice_mut<T: AllBytesValid>(&mut self, ptr: i32, len: i32) -> Result<&'a mut [T], Trap> {
+    pub fn slice_mut<T: AllBytesValid>(&mut self, ptr: i32, len: i32) -> Result<&'a mut [T]> {
         let (ret, r) = self.get_slice_mut(ptr, len)?;
         // SAFETY: see `slice` for how we're extending the lifetime by
         // recording the borrow here. Note that the `mut_borrows` list is
@@ -63,10 +59,10 @@ impl<'a> BorrowChecker<'a> {
         Ok(ret)
     }
 
-    fn get_slice<T: AllBytesValid>(&self, ptr: i32, len: i32) -> Result<(&[T], Region), Trap> {
+    fn get_slice<T: AllBytesValid>(&self, ptr: i32, len: i32) -> Result<(&[T], Region)> {
         let r = self.region::<T>(ptr, len)?;
         if self.is_mut_borrowed(r) {
-            Err(to_trap(GuestError::PtrBorrowed(r)))
+            Err(GuestError::PtrBorrowed(r).into())
         } else {
             Ok((
                 // SAFETY: invariants to uphold:
@@ -92,10 +88,10 @@ impl<'a> BorrowChecker<'a> {
         }
     }
 
-    fn get_slice_mut<T>(&mut self, ptr: i32, len: i32) -> Result<(&mut [T], Region), Trap> {
+    fn get_slice_mut<T>(&mut self, ptr: i32, len: i32) -> Result<(&mut [T], Region)> {
         let r = self.region::<T>(ptr, len)?;
         if self.is_mut_borrowed(r) || self.is_shared_borrowed(r) {
-            Err(to_trap(GuestError::PtrBorrowed(r)))
+            Err(GuestError::PtrBorrowed(r).into())
         } else {
             Ok((
                 // SAFETY: same as `get_slice`, except for that we're threading
@@ -111,32 +107,32 @@ impl<'a> BorrowChecker<'a> {
         }
     }
 
-    fn region<T>(&self, ptr: i32, len: i32) -> Result<Region, Trap> {
+    fn region<T>(&self, ptr: i32, len: i32) -> Result<Region> {
         assert_eq!(std::mem::align_of::<T>(), 1);
         let r = Region {
             start: ptr as u32,
             len: (len as u32)
                 .checked_mul(mem::size_of::<T>() as u32)
-                .ok_or_else(|| to_trap(GuestError::PtrOverflow))?,
+                .ok_or_else(|| GuestError::PtrOverflow)?,
         };
         self.validate_contains(&r)?;
         Ok(r)
     }
 
-    pub fn slice_str(&mut self, ptr: i32, len: i32) -> Result<&'a str, Trap> {
+    pub fn slice_str(&mut self, ptr: i32, len: i32) -> Result<&'a str> {
         let bytes = self.slice(ptr, len)?;
-        std::str::from_utf8(bytes).map_err(to_trap)
+        Ok(std::str::from_utf8(bytes)?)
     }
 
-    fn validate_contains(&self, region: &Region) -> Result<(), Trap> {
+    fn validate_contains(&self, region: &Region) -> Result<()> {
         let end = region
             .start
             .checked_add(region.len)
-            .ok_or_else(|| to_trap(GuestError::PtrOverflow))? as usize;
+            .ok_or_else(|| GuestError::PtrOverflow)? as usize;
         if end <= self.len {
             Ok(())
         } else {
-            Err(to_trap(GuestError::PtrOutOfBounds(*region)))
+            Err(GuestError::PtrOutOfBounds(*region).into())
         }
     }
 
@@ -154,18 +150,16 @@ impl<'a> BorrowChecker<'a> {
 }
 
 impl RawMem for BorrowChecker<'_> {
-    fn store<T: Endian>(&mut self, offset: i32, val: T) -> Result<(), Trap> {
+    fn store<T: Endian>(&mut self, offset: i32, val: T) -> Result<()> {
         let (slice, _) = self.get_slice_mut::<Le<T>>(offset, 1)?;
         slice[0].set(val);
         Ok(())
     }
 
-    fn store_many<T: Endian>(&mut self, offset: i32, val: &[T]) -> Result<(), Trap> {
+    fn store_many<T: Endian>(&mut self, offset: i32, val: &[T]) -> Result<()> {
         let (slice, _) = self.get_slice_mut::<Le<T>>(
             offset,
-            val.len()
-                .try_into()
-                .map_err(|_| to_trap(GuestError::PtrOverflow))?,
+            val.len().try_into().map_err(|_| GuestError::PtrOverflow)?,
         )?;
         for (slot, val) in slice.iter_mut().zip(val) {
             slot.set(*val);
@@ -173,7 +167,7 @@ impl RawMem for BorrowChecker<'_> {
         Ok(())
     }
 
-    fn load<T: Endian>(&self, offset: i32) -> Result<T, Trap> {
+    fn load<T: Endian>(&self, offset: i32) -> Result<T> {
         let (slice, _) = self.get_slice::<Le<T>>(offset, 1)?;
         Ok(slice[0].get())
     }

@@ -22,107 +22,103 @@ pub use table::*;
 pub mod rt {
     use crate::slab::Slab;
     use crate::{Endian, Le};
+    use anyhow::anyhow;
     use std::mem;
     use wasmtime::*;
 
     pub trait RawMem {
-        fn store<T: Endian>(&mut self, offset: i32, val: T) -> Result<(), Trap>;
-        fn store_many<T: Endian>(&mut self, offset: i32, vals: &[T]) -> Result<(), Trap>;
-        fn load<T: Endian>(&self, offset: i32) -> Result<T, Trap>;
+        fn store<T: Endian>(&mut self, offset: i32, val: T) -> Result<()>;
+        fn store_many<T: Endian>(&mut self, offset: i32, vals: &[T]) -> Result<()>;
+        fn load<T: Endian>(&self, offset: i32) -> Result<T>;
     }
 
     impl RawMem for [u8] {
-        fn store<T: Endian>(&mut self, offset: i32, val: T) -> Result<(), Trap> {
+        fn store<T: Endian>(&mut self, offset: i32, val: T) -> Result<()> {
             let mem = self
                 .get_mut(offset as usize..)
                 .and_then(|m| m.get_mut(..mem::size_of::<T>()))
-                .ok_or_else(|| Trap::new("out of bounds write"))?;
+                .ok_or_else(|| anyhow!("out of bounds write"))?;
             Le::from_slice_mut(mem)[0].set(val);
             Ok(())
         }
 
-        fn store_many<T: Endian>(&mut self, offset: i32, val: &[T]) -> Result<(), Trap> {
+        fn store_many<T: Endian>(&mut self, offset: i32, val: &[T]) -> Result<()> {
             let mem = self
                 .get_mut(offset as usize..)
                 .and_then(|m| {
                     let len = mem::size_of::<T>().checked_mul(val.len())?;
                     m.get_mut(..len)
                 })
-                .ok_or_else(|| Trap::new("out of bounds write"))?;
+                .ok_or_else(|| anyhow!("out of bounds write"))?;
             for (slot, val) in Le::from_slice_mut(mem).iter_mut().zip(val) {
                 slot.set(*val);
             }
             Ok(())
         }
 
-        fn load<T: Endian>(&self, offset: i32) -> Result<T, Trap> {
+        fn load<T: Endian>(&self, offset: i32) -> Result<T> {
             let mem = self
                 .get(offset as usize..)
                 .and_then(|m| m.get(..mem::size_of::<Le<T>>()))
-                .ok_or_else(|| Trap::new("out of bounds read"))?;
+                .ok_or_else(|| anyhow!("out of bounds read"))?;
             Ok(Le::from_slice(mem)[0].get())
         }
     }
 
-    pub fn char_from_i32(val: i32) -> Result<char, Trap> {
-        core::char::from_u32(val as u32).ok_or_else(|| Trap::new("char value out of valid range"))
+    pub fn char_from_i32(val: i32) -> Result<char> {
+        core::char::from_u32(val as u32).ok_or_else(|| anyhow!("char value out of valid range"))
     }
 
-    pub fn invalid_variant(name: &str) -> Trap {
+    pub fn invalid_variant(name: &str) -> anyhow::Error {
         let msg = format!("invalid discriminant for `{}`", name);
-        Trap::new(msg)
+        anyhow!(msg)
     }
 
-    pub fn validate_flags<T, U>(
-        bits: T,
-        all: T,
-        name: &str,
-        mk: impl FnOnce(T) -> U,
-    ) -> Result<U, Trap>
+    pub fn validate_flags<T, U>(bits: T, all: T, name: &str, mk: impl FnOnce(T) -> U) -> Result<U>
     where
         T: std::ops::Not<Output = T> + std::ops::BitAnd<Output = T> + From<u8> + PartialEq + Copy,
     {
         if bits & !all != 0u8.into() {
             let msg = format!("invalid flags specified for `{}`", name);
-            Err(Trap::new(msg))
+            Err(anyhow!(msg))
         } else {
             Ok(mk(bits))
         }
     }
 
-    pub fn get_func<T>(caller: &mut Caller<'_, T>, func: &str) -> Result<Func, wasmtime::Trap> {
+    pub fn get_func<T>(caller: &mut Caller<'_, T>, func: &str) -> Result<Func, anyhow::Error> {
         let func = caller
             .get_export(func)
             .ok_or_else(|| {
                 let msg = format!("`{}` export not available", func);
-                Trap::new(msg)
+                anyhow!(msg)
             })?
             .into_func()
             .ok_or_else(|| {
                 let msg = format!("`{}` export not a function", func);
-                Trap::new(msg)
+                anyhow!(msg)
             })?;
         Ok(func)
     }
 
-    pub fn get_memory<T>(caller: &mut Caller<'_, T>, mem: &str) -> Result<Memory, wasmtime::Trap> {
+    pub fn get_memory<T>(caller: &mut Caller<'_, T>, mem: &str) -> Result<Memory, anyhow::Error> {
         let mem = caller
             .get_export(mem)
             .ok_or_else(|| {
                 let msg = format!("`{}` export not available", mem);
-                Trap::new(msg)
+                anyhow!(msg)
             })?
             .into_memory()
             .ok_or_else(|| {
                 let msg = format!("`{}` export not a memory", mem);
-                Trap::new(msg)
+                anyhow!(msg)
             })?;
         Ok(mem)
     }
 
-    pub fn bad_int(_: std::num::TryFromIntError) -> Trap {
+    pub fn bad_int(_: std::num::TryFromIntError) -> anyhow::Error {
         let msg = "out-of-bounds integer conversion";
-        Trap::new(msg)
+        anyhow!(msg)
     }
 
     pub fn copy_slice<T: Endian>(
@@ -131,15 +127,15 @@ pub mod rt {
         base: i32,
         len: i32,
         _align: i32,
-    ) -> Result<Vec<T>, Trap> {
+    ) -> Result<Vec<T>> {
         let size = (len as u32)
             .checked_mul(mem::size_of::<T>() as u32)
-            .ok_or_else(|| Trap::new("array too large to fit in wasm memory"))?;
+            .ok_or_else(|| anyhow!("array too large to fit in wasm memory"))?;
         let slice = memory
             .data(&store)
             .get(base as usize..)
             .and_then(|s| s.get(..size as usize))
-            .ok_or_else(|| Trap::new("out of bounds read"))?;
+            .ok_or_else(|| anyhow!("out of bounds read"))?;
         Ok(Le::from_slice(slice).iter().map(|s| s.get()).collect())
     }
 
@@ -187,17 +183,17 @@ pub mod rt {
             self.slab.insert(resource)
         }
 
-        pub fn get(&self, slab_idx: u32) -> Result<ResourceIndex, Trap> {
+        pub fn get(&self, slab_idx: u32) -> Result<ResourceIndex> {
             match self.slab.get(slab_idx) {
                 Some(idx) => Ok(*idx),
-                None => Err(Trap::new("invalid index specified for handle")),
+                None => Err(anyhow!("invalid index specified for handle")),
             }
         }
 
-        pub fn remove(&mut self, slab_idx: u32) -> Result<ResourceIndex, Trap> {
+        pub fn remove(&mut self, slab_idx: u32) -> Result<ResourceIndex> {
             match self.slab.remove(slab_idx) {
                 Some(idx) => Ok(idx),
-                None => Err(Trap::new("invalid index specified for handle")),
+                None => Err(anyhow!("invalid index specified for handle")),
             }
         }
     }
@@ -225,11 +221,11 @@ pub mod rt {
             self.slab.get(idx.0).unwrap().wasm
         }
 
-        pub fn clone(&mut self, idx: ResourceIndex) -> Result<(), Trap> {
+        pub fn clone(&mut self, idx: ResourceIndex) -> Result<()> {
             let resource = self.slab.get_mut(idx.0).unwrap();
             resource.refcnt = match resource.refcnt.checked_add(1) {
                 Some(cnt) => cnt,
-                None => return Err(Trap::new("resource index count overflow")),
+                None => return Err(anyhow!("resource index count overflow")),
             };
             Ok(())
         }

@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
+use linera_wit_bindgen_core::{wit_parser, Files, Generator};
 use std::path::PathBuf;
 use structopt::StructOpt;
-use wit_bindgen_core::{wit_parser, Files, Generator};
 use wit_parser::Interface;
 
 #[derive(Debug, StructOpt)]
@@ -20,7 +20,7 @@ enum Category {
     /// This generator outputs a Markdown file describing an interface.
     Markdown {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_markdown::Opts,
+        opts: linera_wit_bindgen_gen_markdown::Opts,
         #[structopt(flatten)]
         common: Common,
     },
@@ -31,35 +31,35 @@ enum HostGenerator {
     /// Generates bindings for Rust hosts using the Wasmtime engine.
     WasmtimeRust {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_host_wasmtime_rust::Opts,
+        opts: linera_wit_bindgen_gen_host_wasmtime_rust::Opts,
         #[structopt(flatten)]
         common: Common,
     },
     /// Generates bindings for Python hosts using the Wasmtime engine.
     WasmtimePy {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_host_wasmtime_py::Opts,
+        opts: linera_wit_bindgen_gen_host_wasmtime_py::Opts,
         #[structopt(flatten)]
         common: Common,
     },
     /// Generates bindings for JavaScript hosts.
     Js {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_host_js::Opts,
+        opts: linera_wit_bindgen_gen_host_js::Opts,
         #[structopt(flatten)]
         common: Common,
     },
     /// Generates bindings for Rust hosts using the Wasmer engine.
     WasmerRust {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_host_wasmer_rust::Opts,
+        opts: linera_wit_bindgen_gen_host_wasmer_rust::Opts,
         #[structopt(flatten)]
         common: Common,
     },
     /// Generates bindings for Python hosts using the Wasmer engine.
     WasmerPy {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_host_wasmer_py::Opts,
+        opts: linera_wit_bindgen_gen_host_wasmer_py::Opts,
         #[structopt(flatten)]
         common: Common,
     },
@@ -70,14 +70,14 @@ enum GuestGenerator {
     /// Generates bindings for Rust guest modules.
     Rust {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_guest_rust::Opts,
+        opts: linera_wit_bindgen_gen_guest_rust::Opts,
         #[structopt(flatten)]
         common: Common,
     },
     /// Generates bindings for C/CPP guest modules.
     C {
         #[structopt(flatten)]
-        opts: wit_bindgen_gen_guest_c::Opts,
+        opts: linera_wit_bindgen_gen_guest_c::Opts,
         #[structopt(flatten)]
         common: Common,
     },
